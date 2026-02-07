@@ -1,6 +1,50 @@
+#include "vga.h"
+#include "keyb.h"
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+
+
+void kernel_main(void) {
+    /*
+    terminal_initialize();
+    terminal_writestring("Hello, kernel!\n");
+    terminal_writestring("NEWLINE lesgoooo!");
+    */
+
+    vga_clear();
+
+
+    vga_print(
+    "        __  __    ____  _____\n"
+    "   _____/ /_/ /_  / __ \\/ ___/\n"
+    "  / ___/ __/ __ \\/ / / /\\__ \\\n"
+    " / /  / /_/ / / / /_/ /___/ /\n"
+    "/_/   \\__/_/ /_/\\____//____/\n"
+    );
+    vga_print("typing lesgoo :))) > ");
+
+    while (true) {
+        char c = keyb_get_char();
+        if (!c) continue;
+
+        if (c == '\n') {
+            vga_putc('\n');
+            vga_print("gameOS> ");
+        }
+        else if (c == '\b') {
+            vga_putc('\b');
+            vga_putc(' ');
+            vga_putc('\b');
+        }
+        else {
+            vga_putc(c);
+        }
+    }
+}
+
+/*
 
 #if defined(__linux__)
 #error "USE A CROSS_COMPILER"
@@ -9,6 +53,10 @@
 #if !defined(__i386__)
 #error "USE i386-elf"
 #endif
+
+#define VGA_WIDTH   80
+#define VGA_HEIGHT  25
+#define VGA_MEMORY  0xB8000
 
 char input[128];
 
@@ -46,9 +94,6 @@ size_t strlen(const char* str) {
     return len;
 }
 
-#define VGA_WIDTH   80
-#define VGA_HEIGHT  25
-#define VGA_MEMORY  0xB8000
 
 size_t terminal_row;
 size_t terminal_column;
@@ -102,9 +147,4 @@ void terminal_write(const char* data, size_t size) {
 void terminal_writestring(const char* data) {
     terminal_write(data, strlen(data));
 }
-
-void kernel_main(void) {
-    terminal_initialize();
-    terminal_writestring("Hello, kernel World!\n");
-    terminal_writestring("NEWLINE lesgoooo!");
-}
+*/
