@@ -1,14 +1,13 @@
-# Hobby Operating System (C, x86 Assembly)
+# Hobby Operating System to run PONG(C, x86 Assembly)
 
-A personal operating system project written in **C** and **x86 Assembly**, bootable in **QEMU**.  
-This project explores low-level systems programming, from bootloader design to kernel graphics and keyboard I/O.
+Explores low-level systems programming, from bootloader design to kernel graphics and keyboard I/O.
 
 ---
 
 ## Features
 - Custom bootloader and kernel written from scratch  
 - Text-mode VGA graphics and minimal terminal interface  
-- Keyboard driver using PS/2 interrupt handling  
+- Keyboard driver using polling
 - Experimental command parser and input buffer  
 - Bootable ISO image for QEMU or real hardware testing  
 
@@ -32,7 +31,8 @@ wget -c https://mirror.ibcp.fr/pub/gnu/binutils/binutils-2.42.tar.xz
 ---
 
 ## Keyboard Driver (PS/2)
-Currently implementing PS/2 input support and interrupt handling.
+- Basic keyboard input via polling of PS/2 controller
+- Will transition to IRQ-based handling soon
 
 **Resources:**
 - [Interrupts – OSDev Wiki](https://wiki.osdev.org/Interrupts)

@@ -26,8 +26,17 @@ void vga_putc(char c) {
         newline();
         return;
     }
+    if (c == '\b') {
+        if (col > 0)
+            col--;
+        else if (row > 0) {
+            row--;
+            col = VGA_WIDTH - 1;
+        }
+        vga[row * VGA_WIDTH + col] = (color << 8) | ' ';
+        return;
+    }
 
-    // idx = r*80 + col
     vga[row * VGA_WIDTH + col] = (color << 8) | c;
     if (++col >= VGA_WIDTH)
         newline();

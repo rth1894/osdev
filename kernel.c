@@ -1,21 +1,13 @@
+#include "idt.h"
 #include "vga.h"
+#include "pic.h"
 #include "keyb.h"
+#include "keyb_buffer.h"
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-
+extern void dummy_isr(void);
 
 void kernel_main(void) {
-    /*
-    terminal_initialize();
-    terminal_writestring("Hello, kernel!\n");
-    terminal_writestring("NEWLINE lesgoooo!");
-    */
-
     vga_clear();
-
-
     vga_print(
     "        __  __    ____  _____\n"
     "   _____/ /_/ /_  / __ \\/ ___/\n"
@@ -23,22 +15,26 @@ void kernel_main(void) {
     " / /  / /_/ / / / /_/ /___/ /\n"
     "/_/   \\__/_/ /_/\\____//____/\n"
     );
-    vga_print("typing lesgoo :))) > ");
+    vga_print("Keyboard ready. Type below (Shift for caps):\n\n> ");
 
-    while (true) {
+    idt_init();
+    for (int i = 0; i < 256; i++)
+        idt_set_gate(i, (uint32_t)dummy_isr);
+
+    pic_remap();
+    keyb_buffer_init();
+
+    while (1) {
+        keyb_poll();
         char c = keyb_get_char();
         if (!c) continue;
 
         if (c == '\n') {
             vga_putc('\n');
-            vga_print("gameOS> ");
-        }
-        else if (c == '\b') {
+            vga_print("> ");
+        } else if (c == '\b') {
             vga_putc('\b');
-            vga_putc(' ');
-            vga_putc('\b');
-        }
-        else {
+        } else {
             vga_putc(c);
         }
     }

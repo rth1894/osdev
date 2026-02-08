@@ -1,8 +1,26 @@
 ISO = myos.iso
 KERNEL = kernel.elf
-OBJS = boot.o kernel.o vga.o keyb.o keyb_buffer.o keyb_isr.o
+OBJS = boot.o kernel.o vga.o keyb.o keyb_buffer.o dummy_isr.o idt.o pic.o idt_load.o
 
 all: $(ISO)
+
+dummy_isr.o: dummy_isr.asm
+	nasm -f elf32 dummy_isr.asm -o dummy_isr.o
+
+idt.o: idt.c
+	i686-elf-gcc -c idt.c -o idt.o -ffreestanding
+
+pic.o: pic.c
+	i686-elf-gcc -c pic.c -o pic.o -ffreestanding
+
+keyboard.o: keyboard.c
+	i686-elf-gcc -c keyboard.c -o keyboard.o -ffreestanding
+
+idt_load.o: idt_load.asm
+	nasm -f elf32 idt_load.asm -o idt_load.o
+
+keyboard_isr.o: keyboard_isr.asm
+	nasm -f elf32 keyboard_isr.asm -o keyboard_isr.o
 
 vga.o: vga.c
 	i686-elf-gcc -c vga.c -o vga.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra
@@ -25,15 +43,15 @@ kernel.o: kernel.c
 $(KERNEL): $(OBJS)
 	i686-elf-gcc -T linker.ld -o $(KERNEL) -ffreestanding -O2 -nostdlib $(OBJS) -lgcc
 
-isodir/boot/myiso.bin: $(KERNEL)
+isodir/boot/kernel.elf: $(KERNEL)
 	mkdir -p isodir/boot
-	cp $(KERNEL) isodir/boot/myiso.bin
+	cp $(KERNEL) isodir/boot/kernel.elf
 
 isodir/boot/grub/grub.cfg: grub.cfg
 	mkdir -p isodir/boot/grub
 	cp grub.cfg isodir/boot/grub/grub.cfg
 
-$(ISO): isodir/boot/myiso.bin isodir/boot/grub/grub.cfg
+$(ISO): isodir/boot/kernel.elf isodir/boot/grub/grub.cfg
 	grub-mkrescue -o $(ISO) isodir
 
 run: $(ISO)
