@@ -18,7 +18,7 @@ void idt_init(void) {
         idt_set_gate(i,0);
 
     idtp.limit = sizeof(idt) - 1;
-    idtp.base = (uint32_t)&idt;
+    idtp.base = (uint32_t)& idt;
 
 
     idt_load(&idtp);

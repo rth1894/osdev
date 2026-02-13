@@ -1,15 +1,16 @@
 #include "idt.h"
-#include "vga.h"
-#include "pic.h"
 #include "keyb.h"
 #include "keyb_buffer.h"
+#include "pic.h"
+#include "vga.h"
 
 extern void dummy_isr(void);
 
 void kernel_main(void) {
+#include "terminal.h"
     vga_clear();
     vga_print(
-    "        __  __    ____  _____\n"
+    "         __  __    ____  _____\n"
     "   _____/ /_/ /_  / __ \\/ ___/\n"
     "  / ___/ __/ __ \\/ / / /\\__ \\\n"
     " / /  / /_/ / / / /_/ /___/ /\n"
@@ -29,14 +30,7 @@ void kernel_main(void) {
         char c = keyb_get_char();
         if (!c) continue;
 
-        if (c == '\n') {
-            vga_putc('\n');
-            vga_print("> ");
-        } else if (c == '\b') {
-            vga_putc('\b');
-        } else {
-            vga_putc(c);
-        }
+        terminal_handle_char(c);
     }
 }
 

@@ -1,8 +1,14 @@
 ISO = myos.iso
 KERNEL = kernel.elf
-OBJS = boot.o kernel.o vga.o keyb.o keyb_buffer.o dummy_isr.o idt.o pic.o idt_load.o
+OBJS = boot.o kernel.o vga.o keyb.o keyb_buffer.o dummy_isr.o idt.o pic.o idt_load.o shell.o terminal.o
 
 all: $(ISO)
+
+shell.o: shell.c
+	i686-elf-gcc -c shell.c -o shell.o -ffreestanding
+
+terminal.o: terminal.c
+	i686-elf-gcc -c terminal.c -o terminal.o -ffreestanding
 
 dummy_isr.o: dummy_isr.asm
 	nasm -f elf32 dummy_isr.asm -o dummy_isr.o
