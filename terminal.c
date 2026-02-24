@@ -13,7 +13,7 @@ void terminal_handle_char(char c) {
         cmd_buffer[cmd_length] = '\0';
         shell_execute(cmd_buffer);
         cmd_length = 0;
-        vga_print("> ");
+        vga_print("\n> ");
         return;
     }
 
