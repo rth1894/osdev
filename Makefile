@@ -1,6 +1,6 @@
 ISO = myos.iso
 KERNEL = kernel.elf
-OBJS = boot.o kernel.o vga.o keyb.o keyb_buffer.o dummy_isr.o idt.o pic.o idt_load.o shell.o terminal.o
+OBJS = boot.o kernel.o vga.o keyb.o keyb_buffer.o dummy_isr.o idt.o pic.o idt_load.o shell.o terminal.o tetris.o
 
 all: $(ISO)
 
@@ -45,6 +45,9 @@ boot.o: boot.s
 
 kernel.o: kernel.c
 	i686-elf-gcc -c kernel.c -o kernel.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra
+
+tetris.o: tetris.c
+	i686-elf-gcc -c tetris.c -o tetris.o -std=gnu99 -ffreestanding -O2 -Wall -Wextra
 
 $(KERNEL): $(OBJS)
 	i686-elf-gcc -T linker.ld -o $(KERNEL) -ffreestanding -O2 -nostdlib $(OBJS) -lgcc

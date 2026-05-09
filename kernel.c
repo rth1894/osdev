@@ -3,138 +3,68 @@
 #include "keyb_buffer.h"
 #include "pic.h"
 #include "vga.h"
+#include "shell.h"
+#include "terminal.h"
+#include "tetris.h"
 
 extern void dummy_isr(void);
 
-void kernel_main(void) {
-#include "terminal.h"
+#define MODE_SHELL  0
+#define MODE_TETRIS 1
+
+static void shell_welcome(void) {
     vga_clear();
     vga_print(
-    "         __  __    ____  _____\n"
-    "   _____/ /_/ /_  / __ \\/ ___/\n"
-    "  / ___/ __/ __ \\/ / / /\\__ \\\n"
-    " / /  / /_/ / / / /_/ /___/ /\n"
-    "/_/   \\__/_/ /_/\\____//____/\n"
+        "         __  __    ____  _____\n"
+        "   _____/ /_/ /_  / __ \\/ ___/\n"
+        "  / ___/ __/ __ \\/ / / /\\__ \\\n"
+        " / /  / /_/ / / / /_/ /___/ /\n"
+        "/_/   \\__/_/ /_/\\____//____/\n"
+        "\n"
+        "Welcome to rthOS.  Type 'help' for commands.\n"
+        "Type 'play' to launch Tetris.\n"
+        "\n"
+        "> "
     );
-    vga_print("Keyboard ready. Type below (Shift for caps):\n\n> ");
+}
 
+void kernel_main(void) {
     idt_init();
+
     for (int i = 0; i < 256; i++)
         idt_set_gate(i, (uint32_t)dummy_isr);
 
     pic_remap();
     keyb_buffer_init();
 
+    // boot into shell
+    int mode = MODE_SHELL;
+    shell_welcome();
+
     while (1) {
         keyb_poll();
         char c = keyb_get_char();
-        if (!c) continue;
 
-        terminal_handle_char(c);
-    }
-}
+        if (mode == MODE_SHELL) {
+            if (c) terminal_handle_char(c);
 
-/*
+            int action = terminal_get_action();
+            if (action == SHELL_PLAY) {
+                mode = MODE_TETRIS;
+                tetris_init();
+            }
+        }
+        // tetris mode
+        else {
+            if (c) tetris_input(c);
 
-#if defined(__linux__)
-#error "USE A CROSS_COMPILER"
-#endif
+            tetris_tick();
+            tetris_render();
 
-#if !defined(__i386__)
-#error "USE i386-elf"
-#endif
-
-#define VGA_WIDTH   80
-#define VGA_HEIGHT  25
-#define VGA_MEMORY  0xB8000
-
-char input[128];
-
-enum vga_color {
-    VGA_COLOR_BLACK = 0,
-    VGA_COLOR_BLUE = 1,
-    VGA_COLOR_GREEN = 2,
-    VGA_COLOR_CYAN = 3,
-    VGA_COLOR_RED = 4,
-    VGA_COLOR_MAGENTA = 5,
-    VGA_COLOR_BROWN = 6,
-    VGA_COLOR_LIGHT_GREY = 7,
-    VGA_COLOR_DARK_GREY = 8,
-    VGA_COLOR_LIGHT_BLUE = 9,
-    VGA_COLOR_LIGHT_GREEN = 10,
-    VGA_COLOR_LIGHT_CYAN = 11,
-    VGA_COLOR_LIGHT_RED = 12,
-    VGA_COLOR_LIGHT_MAGENTA = 13,
-    VGA_COLOR_LIGHT_BROWN = 14,
-    VGA_COLOR_WHITE = 15,
-};
-
-static inline uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg) {
-    return fg | bg << 4;
-}
-
-static inline uint16_t vga_entry(unsigned char uc, uint8_t color) {
-    return (uint16_t) uc | (uint16_t) color << 8;
-}
-
-size_t strlen(const char* str) {
-    size_t len = 0;
-    while (str[len])
-        len++;
-    return len;
-}
-
-
-size_t terminal_row;
-size_t terminal_column;
-uint8_t terminal_color;
-uint16_t* terminal_buffer = (uint16_t*)VGA_MEMORY;
-
-void terminal_initialize(void) {
-    terminal_row = 0;
-    terminal_column = 0;
-    terminal_color = vga_entry_color(VGA_COLOR_LIGHT_BLUE, VGA_COLOR_BLACK);
-
-    for (size_t y = 0; y < VGA_HEIGHT; y++) {
-        for (size_t x = 0; x < VGA_WIDTH; x++) {
-            const size_t index = y * VGA_WIDTH + x;
-            terminal_buffer[index] = vga_entry(' ', terminal_color);
+            if (tetris_wants_exit()) {
+                mode = MODE_SHELL;
+                shell_welcome();
+            }
         }
     }
 }
-
-void terminal_setcolor(uint8_t color) {
-    terminal_color = color;
-}
-
-void terminal_putentryat(char c, uint8_t color, size_t x, size_t y) {
-    const size_t index = y * VGA_WIDTH + x;
-    terminal_buffer[index] = vga_entry(c, color);
-}
-
-void terminal_putchar(char c) {
-    if (c == '\n') {
-        terminal_column = 0;
-        if (++terminal_row == VGA_HEIGHT)
-            terminal_row = 0;
-        return;
-    }
-
-    terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
-
-    if (++terminal_column == VGA_WIDTH) {
-        terminal_column = 0;
-        if (++terminal_row == VGA_HEIGHT)
-            terminal_row = 0;
-    }
-}
-
-void terminal_write(const char* data, size_t size) {
-    for (size_t i = 0; i < size; i++)
-        terminal_putchar(data[i]);
-}
-
-void terminal_writestring(const char* data) {
-    terminal_write(data, strlen(data));
-}
-*/
